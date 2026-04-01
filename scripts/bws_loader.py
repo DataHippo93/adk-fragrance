@@ -6,14 +6,22 @@ import subprocess, json, os
 
 BWS_BIN = "/home/adkadmin/.local/bin/bws"
 BWS_TOKEN_ENV = "BWS_ACCESS_TOKEN"
+# Fallback token for cron jobs / non-interactive sessions
+_FALLBACK_TOKEN = "0.79ae37c6-55aa-466f-9466-b41d013ec133.J9o6PCGrEhbYHjtPj9LpLPrHnZKxsA:0Et4yl2QTVPss0YZDoTVNw=="
 
 _cache = {}
+
+
+def _get_token() -> str:
+    """Get BWS access token from env or fallback."""
+    return os.environ.get(BWS_TOKEN_ENV, "") or _FALLBACK_TOKEN
+
 
 def load_secret(key: str) -> str:
     """Fetch a secret by key name from BWS. Returns empty string on failure."""
     if key in _cache:
         return _cache[key]
-    token = os.environ.get(BWS_TOKEN_ENV, "")
+    token = _get_token()
     if not token:
         return ""
     try:
@@ -40,7 +48,7 @@ def load_secret(key: str) -> str:
 
 def load_all() -> dict:
     """Load all accessible secrets into a dict."""
-    token = os.environ.get(BWS_TOKEN_ENV, "")
+    token = _get_token()
     if not token:
         return {}
     try:
